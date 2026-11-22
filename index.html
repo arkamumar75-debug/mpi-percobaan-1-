@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Volta Lab: Rangkaian Arus Searah</title>
+<style>
+:root{--bg:#07142b;--pn:#0d2347;--pn2:#12305e;--tx:#f4f8ff;--mu:#a9bcdc;--cy:#22e6ff;--ye:#ffd93b;--ok:#3ddc97;--bad:#ff6b81;--ln:#2a4a7f;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at 80% -10%,#123a78,var(--bg) 55%);color:var(--tx);font:17px/1.55 "Trebuchet MS","Segoe UI",system-ui,sans-serif;min-height:100vh}
+nav{display:flex;gap:6px;flex-wrap:wrap;padding:10px 14px;background:#061026;border-bottom:1px solid var(--ln);position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+nav b{color:var(--ye);align-self:center;margin-right:8px}
+button,select,input{font:inherit;color:var(--tx)}
+button{min-height:44px;padding:8px 16px;border-radius:12px;border:1px solid var(--ln);background:var(--pn2);cursor:pointer}
+button:hover:not(:disabled){border-color:var(--cy)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--ye);outline-offset:2px}
+button.pri,nav button[aria-current=true]{background:var(--cy);color:#04223a;font-weight:700;border-color:var(--cy)}
+main{max-width:980px;margin:0 auto;padding:18px 14px 60px}
+.card{background:var(--pn);border:1px solid var(--ln);border-radius:18px;padding:18px;margin-bottom:16px;box-shadow:0 8px 24px #0006}
+h1{font-size:2rem;margin:.2em 0;color:var(--cy)}h2{color:var(--ye);margin-top:0}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.kw{background:#0a3a52;border-left:4px solid var(--cy);padding:8px 12px;border-radius:8px;margin:8px 0}
+.fact{background:#4a3d08;border-left:4px solid var(--ye);padding:8px 12px;border-radius:8px;margin:8px 0}
+.bar{height:12px;background:#061026;border-radius:9px;overflow:hidden;margin:6px 0 14px}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--cy),var(--ye));transition:width .4s}
+.opt{display:block;width:100%;text-align:left;margin:8px 0}
+.fb{padding:10px 14px;border-radius:12px;margin:10px 0}.fb.ok{background:#0f4a33;border:1px solid var(--ok)}.fb.bad{background:#4d1a26;border:1px solid var(--bad)}
+input[type=text],select{background:#061026;border:1px solid var(--ln);border-radius:10px;padding:8px 10px;min-height:44px}
+input[type=range]{width:100%;accent-color:var(--cy)}
+canvas{width:100%;background:#050d1f;border-radius:14px;border:1px solid var(--ln)}
+table{border-collapse:collapse;width:100%;font-size:.9rem}td,th{border:1px solid var(--ln);padding:4px 8px;text-align:center}
+.tab{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.rd{font-variant-numeric:tabular-nums}.rd span{color:var(--ye)}
+.pop{position:fixed;top:-20px;font-size:1.6rem;pointer-events:none;animation:fall 1.8s ease-in forwards;z-index:9}
+@keyframes fall{to{transform:translateY(105vh) rotate(360deg);opacity:.2}}
+@media (prefers-reduced-motion:reduce){.pop{display:none}.bar i{transition:none}}
+small{color:var(--mu)}
+</style></head><body>
+<nav id="nav" aria-label="Menu utama"></nav>
+<main id="v"></main>
+<script>
+/* ===== DATA (mudah diedit guru) ===== */
+const CFG={judul:"Volta Lab: Menjelajah Rangkaian Arus Searah",penyusun:"[Nama Guru – Nama Sekolah]",kelas:"Kelas XII / Fase F"};
+const SVG4='<svg viewBox="0 0 220 110" width="260" role="img" aria-label="Dua resistor paralel 6 ohm dan 3 ohm"><g fill="none" stroke="#7dd3fc" stroke-width="2"><path d="M20 55H60M60 25V85M60 25H90M60 85H90M130 25H160M130 85H160M160 25V85M160 55H200"/><rect x="90" y="15" width="40" height="20"/><rect x="90" y="75" width="40" height="20"/></g><g fill="#ffd93b" font-size="12" text-anchor="middle"><text x="110" y="29">6 Ω</text><text x="110" y="89">3 Ω</text></g></svg>';
+const SVG5='<svg viewBox="0 0 220 110" width="280" role="img" aria-label="Resistor 4 ohm seri dengan paralel 6 ohm dan 3 ohm"><g fill="none" stroke="#7dd3fc" stroke-width="2"><path d="M10 55H40M80 55H110M110 25V85M110 25H130M170 25H190M110 85H130M170 85H190M190 25V85M190 55H212"/><rect x="40" y="45" width="40" height="20"/><rect x="130" y="15" width="40" height="20"/><rect x="130" y="75" width="40" height="20"/></g><g fill="#ffd93b" font-size="12" text-anchor="middle"><text x="60" y="59">4 Ω</text><text x="150" y="29">6 Ω</text><text x="150" y="89">3 Ω</text></g></svg>';
+const TB8='<table style="max-width:320px"><tr><th>I (A)</th><th>V terminal (V)</th></tr><tr><td>1</td><td>11</td></tr><tr><td>2</td><td>10</td></tr><tr><td>3</td><td>9</td></tr></table>';
+// t=topik, o=pilihan (k=indeks kunci) | a=kunci numerik, h=petunjuk saat salah, p=pembahasan saat benar
+const QS=[
+{t:"Hukum Ohm",q:"Resistor 4 Ω dihubungkan ke sumber 12 V. Berapa kuat arus yang mengalir?",o:["2 A","3 A","4 A","48 A"],k:1,h:"Gunakan I = V/R. Jangan dikalikan.",p:"I = V/R = 12/4 = 3 A."},
+{t:"Hukum Ohm",q:"Pada resistor mengalir arus 0,5 A saat tegangannya 10 V. Berapa hambatannya (Ω)?",a:20,h:"R = V/I. Perhatikan: arus lebih kecil dari 1 A.",p:"R = 10/0,5 = 20 Ω."},
+{t:"Seri-paralel",q:"Tiga resistor 10 Ω, 20 Ω, dan 30 Ω disusun seri. Hambatan penggantinya (Ω)?",a:60,h:"Pada susunan seri, hambatan apa yang dilakukan terhadap nilai-nilainya?",p:"Rs = 10 + 20 + 30 = 60 Ω."},
+{t:"Seri-paralel",q:"Perhatikan gambar. Berapa hambatan pengganti antara kedua ujung?",svg:SVG4,o:["9 Ω","4,5 Ω","3 Ω","2 Ω"],k:3,h:"Gunakan 1/Rp = 1/R1 + 1/R2. Hasil paralel selalu lebih kecil dari hambatan terkecil.",p:"1/Rp = 1/6 + 1/3 = 1/2, sehingga Rp = 2 Ω."},
+{t:"Seri-paralel",q:"Perhatikan gambar. Berapa hambatan pengganti rangkaian (Ω)?",svg:SVG5,a:6,h:"Selesaikan dulu bagian paralel, lalu jumlahkan dengan resistor yang seri.",p:"Paralel 6 dan 3 = 2 Ω; seri dengan 4 Ω menjadi 6 Ω."},
+{t:"Kirchhoff",q:"Di sebuah titik cabang, arus 5 A masuk. Satu cabang keluar 2 A. Berapa arus pada cabang keluar yang lain?",o:["7 A","3 A","2,5 A","10 A"],k:1,h:"Hukum I Kirchhoff: jumlah arus masuk = jumlah arus keluar.",p:"5 = 2 + I, sehingga I = 3 A."},
+{t:"Kirchhoff",q:"Sumber 12 V (r diabaikan) dihubung seri dengan resistor 2 Ω dan 4 Ω. Berapa arus loop (A)?",a:2,h:"Hukum II Kirchhoff: ε = I(R1 + R2).",p:"12 = I(2+4), sehingga I = 2 A."},
+{t:"GGL & hambatan dalam",q:"Data V terminal terhadap I berikut diperoleh dari sebuah baterai. Berapa hambatan dalam r?",tb:TB8,o:["0,5 Ω","2 Ω","1 Ω","12 Ω"],k:2,h:"V = ε − I·r. Lihat berapa V turun setiap I naik 1 A.",p:"V turun 1 V tiap kenaikan 1 A, jadi r = 1 Ω (dan ε = 12 V)."},
+{t:"GGL & hambatan dalam",q:"Baterai ε = 12 V, r = 1 Ω dihubung ke resistor 5 Ω. Berapa arus rangkaian (A)?",a:2,h:"I = ε/(R + r). Jangan lupa hambatan dalam.",p:"I = 12/(5+1) = 2 A."},
+{t:"Daya & energi",q:"Lampu 100 W menyala 10 jam. Berapa energi yang dipakai (kWh)?",a:1,h:"Ubah daya ke kW dahulu, lalu kalikan jam.",p:"W = 0,1 kW × 10 h = 1 kWh."}];
+const MAT=[
+{t:"Arus, tegangan, hambatan",b:"Kuat arus (I) adalah muatan yang melewati penampang kabel tiap detik (ampere). Tegangan (V) adalah energi per muatan (volt). Hambatan (R) menyatakan seberapa sulit arus mengalir (ohm). Arah arus konvensional: dari kutub positif ke negatif.",k:"I = Q/t",f:"Arus listrik di kabel rumah adalah aliran elektron, tetapi elektron bergerak lambat, hanya sekitar milimeter per detik."},
+{t:"Hukum Ohm",b:"Pada hambatan tetap, tegangan sebanding dengan kuat arus. Grafik V–I berupa garis lurus melalui titik asal dengan gradien R. Lampu pijar tidak ohmik karena hambatan filamen naik saat panas.",k:"V = I·R",f:"Georg Ohm menerbitkan hukumnya pada tahun 1827."},
+{t:"Rangkaian seri dan paralel",b:"Seri: arus sama, tegangan terbagi, Rs = R1 + R2 + … Paralel: tegangan sama, arus terbagi, 1/Rp = 1/R1 + 1/R2 + … Menambah resistor paralel justru menurunkan hambatan total.",k:"Rs, Rp",f:"Lampu rumah dipasang paralel agar satu lampu mati tidak mematikan yang lain."},
+{t:"Hukum Kirchhoff",b:"Hukum I (titik cabang): ΣI masuk = ΣI keluar. Hukum II (loop tertutup): ΣE + ΣIR = 0, atau jumlah aljabar beda potensial dalam satu loop sama dengan nol.",k:"ΣI = 0; ΣV = 0",f:"Gustav Kirchhoff merumuskannya saat masih mahasiswa berusia 21 tahun."},
+{t:"GGL dan hambatan dalam",b:"Sumber nyata punya hambatan dalam r. Tegangan terminal V = ε − I·r. Saat arus besar, V turun. Grafik V–I: titik potong sumbu V = ε, gradien = −r. Tegangan terminal sama dengan ε hanya bila I = 0.",k:"V = ε − Ir; I = ε/(R + r)",f:"Baterai HP yang lemah terasa “turun tegangannya” karena r-nya membesar."},
+{t:"Daya dan energi listrik",b:"Daya P = VI = I²R = V²/R (watt). Energi W = P·t. Untuk tagihan listrik dipakai kWh: 1 kWh = 1 kW × 1 jam = 3,6 × 10⁶ J.",k:"W = P·t",f:"Sekering atau MCB memutus arus berlebih agar kabel tidak terlalu panas."}];
+const ORDER=["Kenali bagian seri dan bagian paralel pada rangkaian.","Hitung hambatan pengganti bagian paralel (R2 ∥ R3).","Jumlahkan hasilnya dengan resistor yang tersusun seri (R1).","Hitung arus total dengan I = ε / Rpengganti."];
+const SHOW=[2,0,3,1]; // urutan tampil acak
+const RES=[0,10,22,47,100,220,470];
+/* ===== STATE ===== */
+let S,raf;
+function init(){S={p:"home",m:0,q:0,st:QS.map(()=>({lock:0,tries:0,first:null,fb:"",dis:[]})),act:{n:0,msg:""},lt:"b",
+ L:{tpl:"seri",e:12,r:0,R:[100,0,0],closed:1,short:0,fuse:1,real:0,showR:1,elec:0,rows:[],msg:""},refl:{}};}
+const $=id=>document.getElementById(id);
+const fm=x=>(+x).toLocaleString("id-ID",{maximumSignificantDigits:3});
+/* ===== NAVIGASI ===== */
+const PG=[["home","Beranda"],["mat","Materi"],["act","Aktivitas"],["lab","Lab"],["quiz","Kuis"],["res","Hasil"]];
+function go(p){S.p=p;render()}
+function render(){cancelAnimationFrame(raf);
+ $("nav").innerHTML="<b>⚡ Volta Lab</b>"+PG.map(([k,n])=>`<button ${S.p===k?'aria-current="true"':""} onclick="go('${k}')">${n}</button>`).join("");
+ $("v").innerHTML=({home:rHome,mat:rMat,act:rAct,lab:rLab,quiz:rQuiz,res:rRes})[S.p]();
+ if(S.p==="lab")labStart();window.scrollTo(0,0)}
+/* ===== BERANDA ===== */
+function rHome(){return `<div class=card><div style="font-size:3rem" aria-hidden=true>💡⚡</div><h1>${CFG.judul}</h1>
+<p>Fisika · ${CFG.kelas} · Materi: Rangkaian Arus Searah (Listrik Dinamis DC)<br>Penyusun: ${CFG.penyusun}</p>
+<p>Halo, aku <b>Volta</b>! Ayo selidiki bagaimana arus mengalir lewat percobaan virtual.</p><button class=pri onclick="go('mat')">Mulai Belajar</button></div>
+<div class=card><h2>Tujuan Pembelajaran</h2><div class=grid>
+${[["🔌","Menganalisis hubungan V, I, dan R (Hukum Ohm)"],["🧮","Menghitung hambatan pengganti seri, paralel, dan campuran"],["🔁","Menerapkan Hukum I dan II Kirchhoff"],["🔋","Menentukan GGL dan hambatan dalam dari grafik V–I"],["💡","Menghitung daya dan energi listrik (kWh)"]].map(([i,t])=>`<div class=kw><span style="font-size:1.6rem">${i}</span><br>${t}</div>`).join("")}</div></div>
+<div class=card><h2>Petunjuk Singkat</h2><p>Pakai menu di atas: baca <b>Materi</b>, coba <b>Aktivitas</b>, bereksperimen di <b>Lab</b>, lalu kerjakan <b>Kuis</b>. Semua tombol bisa dipakai dengan keyboard (Tab dan Enter).</p>
+<details><summary>Profil pengembang</summary><p>${CFG.penyusun} (isi di bagian CFG pada kode).</p></details>
+<details><summary>Daftar pustaka</summary><p>Halliday, Resnick &amp; Walker. <i>Fundamentals of Physics.</i> · Kanginan, M. <i>Fisika untuk SMA/MA Kelas XII.</i> · Kemendikbudristek. <i>Capaian Pembelajaran Fisika Fase F.</i></p></details></div>`}
+/* ===== MATERI ===== */
+function rMat(){const m=MAT[S.m];return `<div class=card><div class=row><h2>${m.t}</h2><small>${S.m+1} dari ${MAT.length}</small></div><p>${m.b}</p>
+<div class=kw><b>Kata Kunci:</b> ${m.k}</div><div class=fact><b>Tahukah Kamu?</b> ${m.f}</div>
+<div class=row><button ${S.m?"":"disabled"} onclick="S.m--;render()">Sebelumnya</button>
+${S.m<MAT.length-1?'<button class=pri onclick="S.m++;render()">Berikutnya</button>':'<button class=pri onclick="go(\'act\')">Ke Aktivitas</button>'}</div></div>`}
+/* ===== AKTIVITAS: urutkan langkah ===== */
+function rAct(){const a=S.act,done=a.n>=ORDER.length;
+return `<div class=card><h2>Aktivitas: Urutkan Langkah Menghitung Rpengganti</h2><p>Rangkaian: sumber ε dengan R1 seri terhadap (R2 paralel R3). Klik langkah sesuai urutan yang benar.</p>
+<div>${ORDER.slice(0,a.n).map((t,i)=>`<div class=fb ok>✔ ${i+1}. ${t}</div>`).join("").replace(/fb ok/g,'fb ok"')}</div>
+${SHOW.filter(i=>i>=a.n).map(i=>`<button class=opt onclick="actClick(${i})">${ORDER[i]}</button>`).join("")}
+<div aria-live=polite>${a.msg?`<div class="fb ${done?"ok":"bad"}">${a.msg}</div>`:""}</div>
+<div class=row><button onclick="S.act={n:0,msg:''};render()">Reset aktivitas</button><button class=pri onclick="go('lab')">Ke Lab</button></div></div>`}
+function actClick(i){const a=S.act;if(i===a.n){a.n++;a.msg=a.n>=ORDER.length?"Kamu Hebat! 🎉 Urutan sudah benar.":"Tepat! Lanjutkan langkah berikutnya.";if(a.n>=ORDER.length)conf()}else a.msg="Belum tepat. Pikirkan: apa yang harus diketahui dulu sebelum menjumlahkan?";render()}
+/* ===== LAB: mesin hitung terpusat ===== */
+const par=a=>a.some(x=>x===0)?0:1/a.reduce((s,x)=>s+1/x,0);
+function branch(Vp,Rs,I,Rp){const z=Rs.filter(x=>x===0).length;return Rp===0&&z?Rs.map(x=>x===0?I/z:0):Rs.map(x=>Vp/x)}
+function solve(L){const{tpl,e,r,R}=L;let Rt,per;
+ if(tpl==="seri")Rt=R[0]+R[1]+R[2];else if(tpl==="paralel")Rt=par(R);else Rt=R[0]+par([R[1],R[2]]);
+ if(L.short)Rt=0;
+ let I=(L.closed||L.short)&&L.fuse?e/Math.max(Rt+r,1e-3):0; // hindari bagi nol
+ if(I>1){I=0;L.fuse=0;L.msg=L.short?"Hubung singkat! Arus sangat besar, sekering putus 💥. Perbaiki rangkaian lalu klik Ganti Sekering.":"Arus melebihi 1 A sehingga sekering putus 💥. Perbesar hambatan, lalu Ganti Sekering."}
+ const Vt=e-I*r;
+ if(tpl==="seri")per=R.map(x=>({V:I*x,I,P:I*I*x}));
+ else if(tpl==="paralel"){const c=branch(Vt,R,I,Rt);per=R.map((x,i)=>({V:Vt*(Rt?1:0),I:c[i],P:c[i]*c[i]*x}))}
+ else{const Rp=par([R[1],R[2]]),Vp=I*Rp,c=branch(Vp,[R[1],R[2]],I,Rp);per=[{V:I*R[0],I,P:I*I*R[0]},{V:Vp,I:c[0],P:c[0]*c[0]*R[1]},{V:Vp,I:c[1],P:c[1]*c[1]*R[2]}]}
+ return{Rt,I,Vt,per,Pw:Vt*I}}
+function labStart(){updateLab();anim()}
+function setL(k,v){S.L[k]=v;if(k==="e"||k==="r"||k==="R"||k==="tpl"){}updateLab()}
+function setR(i,v){S.L.R[i]=+v;updateLab()}
+function rLab(){const L=S.L;
+return `<div class=card><div class=tab><button ${S.lt==="b"?'class=pri':""} onclick="S.lt='b';render()">Papan Rangkai (Eksplorasi Bebas)</button><button ${S.lt==="g"?'class=pri':""} onclick="S.lt='g';render()">Praktikum Terpandu</button></div>
+${S.lt==="g"?rGuide():`<div class=grid>
+<label>Template<br><select onchange="setL('tpl',this.value)">${[["seri","Seri"],["paralel","Paralel"],["campuran","Campuran"]].map(([v,n])=>`<option value=${v} ${L.tpl===v?"selected":""}>${n}</option>`).join("")}</select></label>
+<label>ε = <b id=ev>${fm(L.e)}</b> V<input type=range min=1.5 max=12 step=1.5 value=${L.e} oninput="setL('e',+this.value);$('ev').textContent=fm(this.value)"></label>
+<label>r = <b id=rv>${fm(L.r)}</b> Ω<input type=range min=0 max=5 step=0.5 value=${L.r} oninput="setL('r',+this.value);$('rv').textContent=fm(this.value)"></label></div>
+<div class=grid style="margin-top:8px">${[0,1,2].map(i=>`<label>R${i+1} (Ω)<br><select onchange="setR(${i},this.value)">${RES.map(v=>`<option ${L.R[i]===v?"selected":""}>${v}</option>`).join("")}</select></label>`).join("")}</div>
+<small>R = 0 berarti dilewati dengan kabel. Gelang warna ditampilkan pada panel hasil.</small>
+<div class=row style="margin:10px 0"><button onclick="S.L.closed^=1;updateLab()">🔌 Saklar</button><button onclick="S.L.short^=1;updateLab()">⚠️ Hubung singkat</button><button onclick="S.L.fuse=1;S.L.msg='';updateLab()">Ganti Sekering</button><button class=pri onclick="rec()">📸 Catat Data</button><button onclick="S.L.rows=[];updateLab()">🗑 Hapus Data</button><button onclick="resetLab()">🔄 Reset Papan</button></div>
+<div class=row><label><input type=checkbox ${L.real?"checked":""} onchange="S.L.real=this.checked?1:0;updateLab()"> Mode Realistis (galat ±1,5%)</label><label><input type=checkbox ${L.elec?"checked":""} onchange="S.L.elec=this.checked?1:0"> Arah elektron</label></div>
+<canvas id=cv width=640 height=230 role=img aria-label="Animasi aliran muatan pada rangkaian"></canvas>
+<div id=rd class=rd aria-live=polite></div><div id=lmsg></div>
+<h3>Data & grafik V terminal terhadap I</h3><div id=tb></div><canvas id=gr width=640 height=260 role=img aria-label="Grafik V terhadap I"></canvas><div id=reg class=rd></div>
+<details><summary>Asumsi model, rumus, miskonsepsi</summary><p><small>Kabel R = 0, amperemeter dan voltmeter ideal, resistor ohmik pada suhu tetap, sumber DC konstan dengan hambatan dalam r, sekering putus bila I &gt; 1 A. Rumus: V = IR; P = VI = I²R = V²/R; V = ε − Ir. Miskonsepsi: arus tidak “habis” di lampu pertama; menambah resistor paralel menurunkan R total; tegangan terminal = ε hanya saat I = 0; voltmeter dipasang paralel, amperemeter seri.</small></p></details>`}</div>`}
+function rGuide(){const G=[["Percobaan 1: Hukum Ohm","Tepat satu resistor 100 Ω, r = 0. Ubah ε (minimal 5 nilai) dan klik Catat Data tiap kali. Gradien grafik V–I = R.",{tpl:"seri",R:[100,0,0],r:0}],
+["Percobaan 2: Seri, paralel, campuran","Bandingkan R ukur (V/I) dengan R teori untuk tiap template pada panel hasil. Catat beberapa variasi nilai R.",{tpl:"campuran",R:[100,220,220],r:0}],
+["Percobaan 3: GGL dan hambatan dalam","Atur r = 2 Ω, satu resistor beban. Ubah R1 (≥ 5 nilai) lalu Catat Data. Titik potong grafik = ε, gradien = −r.",{tpl:"seri",R:[22,0,0],r:2}]];
+return `<p>Pilih percobaan. Pengaturan awal diterapkan otomatis; kamu mengambil data di Papan Rangkai.</p><div class=grid>${G.map((g,i)=>`<div class=kw><b>${g[0]}</b><p>${g[1]}</p><button class=pri onclick="applyG(${i})">Mulai</button></div>`).join("")}</div>`;}
+const GCFG=[{tpl:"seri",R:[100,0,0],r:0,e:3},{tpl:"campuran",R:[100,220,220],r:0,e:12},{tpl:"seri",R:[22,0,0],r:2,e:12}];
+function applyG(i){Object.assign(S.L,JSON.parse(JSON.stringify(GCFG[i])),{rows:[],closed:1,short:0,fuse:1,msg:""});S.lt="b";render()}
+function resetLab(){S.L={tpl:"seri",e:12,r:0,R:[100,0,0],closed:1,short:0,fuse:1,real:0,showR:1,elec:0,rows:[],msg:""};render()}
+function rec(){const c=solve(S.L);if(!c.I){S.L.msg="Belum ada arus, tidak ada data untuk dicatat.";updateLab();return}S.L.rows.push({e:S.L.e,r:S.L.r,Rt:c.Rt,I:c.I,V:c.Vt});updateLab()}
+const nz=(L,v)=>L.real?v*(1+(Math.random()*2-1)*0.015):v;
+const BAND=["#000","#8b4513","#e53935","#fb8c00","#fdd835","#43a047","#1e88e5","#8e24aa","#9e9e9e","#fff"];
+function bands(R){if(!R)return"kabel";const s=String(R),d=[+s[0],s.length>1?+s[1]:0],m=Math.max(0,s.length-2);return[d[0],d[1],m].map(i=>`<span style="display:inline-block;width:8px;height:16px;background:${BAND[i]};vertical-align:middle;border:1px solid #888"></span>`).join("")}
+function updateLab(){if(!$("rd"))return;const L=S.L,c=solve(L);S.calc=c;
+ const lbl=["R1","R2","R3"];
+ $("rd").innerHTML=`<p>R total teori: <span>${fm(c.Rt)} Ω</span> · I: <span>${fm(nz(L,c.I))} A</span> · V terminal: <span>${fm(nz(L,c.Vt))} V</span> · P sumber: <span>${fm(c.Pw)} W</span><br>R ukur (V/I) = <span>${c.I?fm(nz(L,c.Vt)/nz(L,c.I)):"–"} Ω</span> (nilai teori ${fm(c.Rt)} Ω)<br>Kirchhoff II: ε − Ir − ΣIR ≈ <span>${fm(Math.abs(L.e-c.I*L.r-(L.tpl==="seri"?c.per.reduce((s,p)=>s+p.V,0):L.tpl==="paralel"?c.Vt:c.per[0].V+c.per[1].V)))} V</span></p>
+ <table><tr><th>Komponen</th><th>Gelang</th><th>V (V)</th><th>I (A)</th><th>P (W)</th></tr>${c.per.map((p,i)=>L.R[i]?`<tr><td>${lbl[i]} = ${L.R[i]} Ω</td><td>${bands(L.R[i])}</td><td>${fm(nz(L,p.V))}</td><td>${fm(nz(L,p.I))}</td><td>${fm(p.P)}</td></tr>`:"").join("")}</table>`;
+ $("lmsg").innerHTML=(L.msg||!L.closed)?`<div class="fb bad">${L.msg||"Saklar terbuka: rangkaian terputus, arus = 0 A (bukan error)."}</div>`:"";
+ $("tb").innerHTML=L.rows.length?`<table><tr><th>ε</th><th>r</th><th>R tot</th><th>I (A)</th><th>V (V)</th></tr>${L.rows.map(x=>`<tr><td>${fm(x.e)}</td><td>${fm(x.r)}</td><td>${fm(x.Rt)}</td><td>${fm(x.I)}</td><td>${fm(x.V)}</td></tr>`).join("")}</table>`:"<small>Belum ada data. Klik “Catat Data”.</small>";
+ graph()}
+function graph(){const cv=$("gr"),g=cv.getContext("2d"),W=cv.width,H=cv.height,P=S.L.rows;g.clearRect(0,0,W,H);
+ g.strokeStyle="#2a4a7f";g.fillStyle="#a9bcdc";g.font="13px sans-serif";g.beginPath();g.moveTo(50,10);g.lineTo(50,H-35);g.lineTo(W-10,H-35);g.stroke();g.fillText("I (A)",W-50,H-12);g.fillText("V (V)",6,16);
+ if(!P.length){$("reg").innerHTML="";return}
+ const xm=Math.max(...P.map(p=>p.I))*1.15||1,ym=Math.max(...P.map(p=>p.V))*1.15||1,X=x=>50+x/xm*(W-70),Y=y=>H-35-y/ym*(H-55);
+ g.fillStyle="#ffd93b";P.forEach(p=>{g.beginPath();g.arc(X(p.I),Y(p.V),5,0,7);g.fill()});
+ const n=P.length,sx=P.reduce((s,p)=>s+p.I,0),sy=P.reduce((s,p)=>s+p.V,0),sxx=P.reduce((s,p)=>s+p.I*p.I,0),sxy=P.reduce((s,p)=>s+p.I*p.V,0),d=n*sxx-sx*sx;
+ if(n<2||Math.abs(d)<1e-12){$("reg").innerHTML="Catat minimal 2 data dengan arus berbeda untuk regresi.";return}
+ const m=(n*sxy-sx*sy)/d,b=(sy-m*sx)/n,ym2=sy/n,sst=P.reduce((s,p)=>s+(p.V-ym2)**2,0),sse=P.reduce((s,p)=>s+(p.V-(m*p.I+b))**2,0),r2=sst?1-sse/sst:1;
+ g.strokeStyle="#22e6ff";g.lineWidth=2;g.beginPath();g.moveTo(X(0),Y(b));g.lineTo(X(xm),Y(m*xm+b));g.stroke();
+ $("reg").innerHTML=`Regresi: V = <span>${fm(m)}</span>·I + <span>${fm(b)}</span>; gradien ${fm(m)} Ω, titik potong ${fm(b)} V, R² = ${fm(r2)}.<br>${m>0?`Gradien positif: hambatan luar ≈ ${fm(m)} Ω (Hukum Ohm).`:`Gradien negatif: r ≈ ${fm(-m)} Ω dan ε ≈ ${fm(b)} V.`}`}
+/* animasi muatan: kecepatan ∝ I, arah arus konvensional */
+let off=0,last=0;
+function anim(t){raf=requestAnimationFrame(anim);const cv=$("cv");if(!cv)return;const g=cv.getContext("2d"),c=S.calc||solve(S.L),L=S.L,dt=Math.min(.05,((t||0)-last)/1000||0);last=t||0;
+ const rm=matchMedia("(prefers-reduced-motion:reduce)").matches;
+ g.clearRect(0,0,640,230);const x0=50,x1=590,y0=45,y1=185,per=2*(x1-x0+y1-y0);
+ g.strokeStyle="#22e6ff";g.lineWidth=3;g.strokeRect(x0,y0,x1-x0,y1-y0);
+ g.fillStyle="#0d2347";g.fillRect(x0-14,100,28,40);g.fillStyle="#ffd93b";g.font="bold 14px sans-serif";g.fillText("ε "+fm(L.e)+" V",x0+22,125);
+ g.fillStyle="#0d2347";g.strokeStyle="#ffd93b";g.lineWidth=2;
+ [0,1,2].forEach(i=>{const x=170+i*130;if(L.R[i]){g.fillRect(x,y0-12,80,24);g.strokeRect(x,y0-12,80,24);g.fillStyle="#fff";g.font="13px sans-serif";g.fillText("R"+(i+1)+" "+L.R[i]+" Ω",x+8,y0+4);g.fillStyle="#0d2347"}});
+ if(L.showR&&L.r>0){g.fillStyle="#ff9f43";g.fillText("r = "+fm(L.r)+" Ω",x0+22,152)}
+ const p1=c.per[0].P,gl=Math.min(1,Math.sqrt(p1)); // lampu: kecerahan ∝ daya R1
+ g.beginPath();g.arc(x1,115,18,0,7);g.fillStyle=`rgba(255,217,59,${.1+.9*gl})`;g.shadowColor="#ffd93b";g.shadowBlur=30*gl;g.fill();g.shadowBlur=0;g.fillStyle="#fff";g.fillText("💡",x1-10,121);
+ if(!L.fuse){g.fillStyle="#ff6b81";g.font="bold 16px sans-serif";g.fillText("SEKERING PUTUS 💥",230,115)}
+ if(c.I>0&&!rm)off=(off+c.I*400*dt*(L.elec?-1:1)+per*10)%per;
+ if(c.I>0){g.fillStyle=L.elec?"#7dd3fc":"#ffd93b";for(let k=0;k<44;k++){let s=(k*per/44+off)%per,x,y;
+  // jalur: dari kutub (+) atas-kiri searah jarum jam
+  if(s<x1-x0){x=x0+s;y=y0}else if(s<x1-x0+y1-y0){x=x1;y=y0+s-(x1-x0)}else if(s<2*(x1-x0)+y1-y0){x=x1-(s-(x1-x0)-(y1-y0));y=y1}else{x=x0;y=y1-(s-2*(x1-x0)-(y1-y0))}
+  g.beginPath();g.arc(x,y,4,0,7);g.fill()}}}
+/* ===== KUIS ===== */
+function rQuiz(){const q=QS[S.q],s=S.st[S.q],n=QS.length,dn=S.st.filter(x=>x.lock).length,last=S.q===n-1;
+return `<div class=card><div class=row><b>Soal ${S.q+1} dari ${n}</b><span>${Math.round(dn/n*100)}%</span></div><div class=bar role=progressbar aria-valuenow=${Math.round(dn/n*100)} aria-valuemin=0 aria-valuemax=100><i style="width:${dn/n*100}%"></i></div>
+<p><b>${q.q}</b></p>${q.svg||""}${q.tb||""}
+${q.o?q.o.map((t,i)=>`<button class=opt ${s.lock||s.dis.includes(i)?"disabled":""} ${s.lock||s.dis.includes(i)?"disabled":""} onclick="ans(${i})">${"ABCD"[i]}. ${t}</button>`).join(""):`<div class=row style="justify-content:flex-start"><input type=text id=nin inputmode=decimal placeholder="Jawaban (2,5 atau 2.5)" aria-label="Jawaban" ${s.lock?"disabled":""} onkeydown="if(event.key==='Enter')ansN()"><button class=pri ${s.lock?"disabled":""} onclick="ansN()">Periksa</button></div>`}
+<div aria-live=polite>${s.fb==="ok"?`<div class="fb ok"><b>Kamu Hebat! 🎉</b> ${q.p}</div>`:s.fb==="bad"?`<div class="fb bad">Belum tepat, tetap semangat! 💪 Petunjuk: ${q.h}</div>`:""}</div>
+<div class=row><span></span><button class=pri ${s.lock?"":"disabled"} onclick="${last?"go('res')":"S.q++;render()"}">${last?"Lihat Hasil":"Lanjut"}</button></div></div>`}
+function ans(i){check(i===QS[S.q].k,i)}
+function ansN(){const v=parseFloat(String($("nin").value).replace(",",".").replace(/[^0-9.\-]/g,""));const a=QS[S.q].a;check(!isNaN(v)&&Math.abs(v-a)<=Math.max(.01,.01*Math.abs(a)))}
+function check(ok,i){const s=S.st[S.q];if(s.lock)return;s.tries++;
+ if(ok){s.lock=1;s.fb="ok";if(s.tries===1)s.first=1;conf()}else{s.fb="bad";if(s.tries===1)s.first=0;if(i!==undefined)s.dis.push(i)}render()}
+/* ===== HASIL & REFLEKSI ===== */
+function rRes(){const n=QS.length,ok=S.st.filter(x=>x.first===1).length,sc=Math.round(ok/n*100);
+ if(S.st.some(x=>!x.lock))return `<div class=card><h2>Hasil</h2><p>Selesaikan semua soal kuis dahulu untuk melihat hasil.</p><button class=pri onclick="go('quiz')">Ke Kuis</button></div>`;
+ const msg=sc>=90?"Luar biasa! Kamu siap jadi teknisi listrik andal ⚡":sc>=70?"Bagus sekali! Sedikit lagi sempurna.":sc>=50?"Cukup baik. Ulangi materi yang belum kuat ya.":"Jangan menyerah! Baca ulang materi dan coba lab lagi.";
+ const rev=[...new Set(QS.filter((_,i)=>S.st[i].first!==1).map(q=>q.t))];
+ const RF=[["Seberapa yakin kamu memahami Hukum Ohm sekarang?"],["Bagaimana perasaanmu belajar dengan lab virtual?"]];
+ return `<div class=card><h2>Hasil Belajar</h2><p style="font-size:2.4rem;margin:.2em 0">${sc}</p><p>Benar pada percobaan pertama: <b>${ok}</b> dari ${n} soal</p><p>${msg}</p>
+ ${rev.length?`<div class=kw><b>Materi yang perlu diulang:</b> ${rev.join(", ")}</div>`:'<div class=fact>Semua materi sudah kuat. 🎉</div>'}</div>
+ <div class=card><h2>Refleksi</h2>${RF.map(([t],i)=>`<p>${t}</p><div class=row style="justify-content:flex-start">${["😞","😐","🙂","🤩"].map(e=>`<button ${S.refl[i]===e?"class=pri":""} aria-label="Perasaan ${e}" onclick="S.refl[${i}]='${e}';render()">${e}</button>`).join("")}</div>`).join("")}
+ <p style="margin-top:16px"><button class=pri onclick="init();render()">Coba Lagi</button></p></div>`}
+/* ===== KONFETI ===== */
+function conf(){if(matchMedia("(prefers-reduced-motion:reduce)").matches)return;for(let i=0;i<26;i++){const s=document.createElement("span");s.className="pop";s.textContent=["🎉","⚡","✨","💡"][i%4];s.style.left=Math.random()*100+"vw";s.style.animationDelay=Math.random()*.5+"s";document.body.appendChild(s);setTimeout(()=>s.remove(),2600)}}
+init();render();
+</script></body></html>
